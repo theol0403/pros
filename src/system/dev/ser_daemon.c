@@ -19,13 +19,24 @@
 
 #include "kapi.h"
 #include "system/dev/banners.h"
+#include "system/hot.h"
 #include "system/optimizers.h"
 #include "v5_api.h"
 
 #define MAX_COMMAND_LENGTH 32
 
-__attribute__((weak)) char const* const _PROS_COMPILE_TIMESTAMP = "Unknown";
-__attribute__((weak)) char const* const _PROS_COMPILE_DIRECTORY = "Unknown";
+__attribute__((weak)) char const* _PROS_COMPILE_TIMESTAMP = "Unknown";
+__attribute__((weak)) char const* _PROS_COMPILE_DIRECTORY = "Unknown";
+
+__attribute__((constructor (102))) static void install_hot() {
+	printf("ser_daemon %p %p\n", &HOT_TABLE, HOT_TABLE.compile_timestamp);
+	if (HOT_TABLE.compile_directory) {
+		_PROS_COMPILE_DIRECTORY = HOT_TABLE.compile_directory;
+	}
+	if (HOT_TABLE.compile_timestamp) {
+		_PROS_COMPILE_TIMESTAMP = HOT_TABLE.compile_timestamp;
+	}
+}
 
 void print_small_banner(void) {
 	uint32_t uptime = millis();

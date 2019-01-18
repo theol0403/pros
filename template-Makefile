@@ -32,6 +32,8 @@ TEMPLATE_FILES=$(INCDIR)/**/*.h $(INCDIR)/**/*.hpp
 
 .DEFAULT_GOAL=quick
 
+USE_PACKAGE:=1
+
 ################################################################################
 ################################################################################
 ########## Nothing below this line should be edited by typical users ###########
@@ -48,7 +50,7 @@ CXXOBJ=$(addprefix $(BINDIR)/,$(patsubst $(SRCDIR)/%,%.o,$(call CXXSRC,$1)))
 
 GETALLOBJ=$(sort $(call ASMOBJ,$1) $(call COBJ,$1) $(call CXXOBJ,$1))
 
-LIBRARIES=-L$(FWDIR) -Wl,--start-group $(wildcard $(FWDIR)/*.a) -lc -lm -lgcc -lstdc++ -lsupc++ -Wl,--end-group
+LIBRARIES=-Wl,--start-group $(wildcard $(FWDIR)/*.a) -lc -lm -lgcc -lstdc++ -lsupc++ -Wl,--end-group
 ARCHIVE_TEXT_LIST:=$(subst $(SPACE),$(COMMA),$(notdir $(basename $(wildcard $(FWDIR)/*.a))))
 
 ifndef OUTBIN
@@ -58,15 +60,54 @@ OUTBIN:=$(BINDIR)/$(OUTNAME).bin
 OUTELF:=$(BINDIR)/$(OUTNAME).elf
 LDTIMEOBJ:=$(BINDIR)/_pros_ld_timestamp.o
 
+PACKAGEELF=$(BINDIR)/v5.package.elf
+PACKAGEBIN=$(basename $(PACKAGEELF)).bin
+PACKAGELIB=$(basename $(PACKAGEELF)).lib
+OUTELF_PACKAGED=$(BINDIR)/$(OUTNAME).package.elf
+OUTBIN_PACKAGED=$(BINDIR)/$(OUTNAME).package.bin
+
+DEFAULT_BIN=$(OUTBIN)
+ifeq ($(USE_PACKAGE),1)
+DEFAULT_BIN=$(OUTBIN_PACKAGED)
+endif
+
 .PHONY: all clean quick
 
-quick: $(OUTBIN)
+quick: $(DEFAULT_BIN)
 
-all: clean $(OUTBIN)
+all: clean $(DEFAULT_BIN)
 
 clean:
 	@echo Cleaning project
 	-$Drm -rf $(BINDIR)
+
+package: $(PACKAGEBIN)
+
+$(PACKAGEELF): $(LIBAR) $(wildcard $(FWDIR)/*.a)
+	$(VV)mkdir -p $(dir $@)
+	$(call _pros_ld_timestamp)
+	@echo -n "Packaging project with $^ "
+	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)--whole-archive $^ -lstdc++ -Wl$(COMMA)--no-whole-archive -Wl$(COMMA)-T $(FWDIR)/v5.ld -o $@ -Wl$(COMMA)--start-group -lm -lsupc++ -lc -lgcc -Wl$(COMMA)--end-group ,)
+
+$(PACKAGELIB): $(PACKAGEELF)
+	@echo -n "Trimming sections "
+	$(call test_output,$D$(OBJCOPY) --extract-symbol --weaken --strip-debug --strip-symbol=install_hot_table --strip-symbol=cpp_initialize --strip-symbol=initialize $< $@, $(DONE_STRING))
+
+$(PACKAGEBIN): $(PACKAGEELF)
+	$(VV)mkdir -p $(dir $@)
+	@echo -n "Creating package binary for $(DEVICE) "
+	$(call test_output,$D$(OBJCOPY) $< -O binary -R .hot_init $@,$(DONE_STRING))
+
+$(OUTELF_PACKAGED): $(PACKAGELIB) $(call GETALLOBJ,$(EXCLUDE_SRCDIRS))
+	$(call _pros_ld_timestamp)
+	@echo -n "Linking project with $(ARCHIVE_TEXT_LIST) "
+	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)-R$< $(filter-out $<,$^) $(LDTIMEOBJ) $(LIBRARIES) -Wl$(COMMA)-T $(FWDIR)/v5.ld -o $@,$(OK_STRING))
+	@echo Section sizes:
+	-$(VV)$(SIZETOOL) $(SIZEFLAGS) $@ $(SIZES_SED) $(SIZES_NUMFMT)
+
+$(OUTBIN_PACKAGED): $(OUTELF_PACKAGED) $(PACKAGEBIN)
+	@echo -n "Creating $@ for $(DEVICE) "
+	$(call test_output,$D$(OBJCOPY) $< -O binary $@,$(DONE_STRING))
 
 $(OUTBIN): $(OUTELF) $(BINDIR)
 	@echo -n "Creating $@ for $(DEVICE) "
@@ -75,7 +116,7 @@ $(OUTBIN): $(OUTELF) $(BINDIR)
 $(OUTELF): $(call GETALLOBJ,$(EXCLUDE_SRCDIRS))
 	$(call _pros_ld_timestamp)
 	@echo -n "Linking project with $(ARCHIVE_TEXT_LIST) "
-	$(call test_output,$D$(LD) $(LDFLAGS) $^ $(LDTIMEOBJ) $(LIBRARIES) -o $@,$(OK_STRING))
+	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)-T $(FWDIR)/v5.ld $^ $(LDTIMEOBJ) $(LIBRARIES) -o $@,$(OK_STRING))
 	@echo Section sizes:
 	-$(VV)$(SIZETOOL) $(SIZEFLAGS) $@ $(SIZES_SED) $(SIZES_NUMFMT)
 

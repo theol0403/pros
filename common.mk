@@ -10,7 +10,7 @@ WARNFLAGS+=
 SPACE :=
 SPACE +=
 COMMA := ,
-LNK_FLAGS = -T?%$(FWDIR)/v5.ld --gc-sections
+LNK_FLAGS = --gc-sections -L$(FWDIR)
 
 ASMFLAGS=$(MFLAGS) $(WARNFLAGS)
 CFLAGS=$(MFLAGS) $(CPPFLAGS) $(WARNFLAGS) $(GCCFLAGS) --std=gnu11

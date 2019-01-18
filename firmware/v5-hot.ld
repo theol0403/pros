@@ -24,21 +24,18 @@ _UNDEF_STACK_SIZE = DEFINED(_UNDEF_STACK_SIZE) ? _UNDEF_STACK_SIZE : 1024;
 
 /* Define Memories in the system */
 
-INCLUDE v5-common.ld
+INCLUDE ./v5-common.ld
 
 /* Specify the default entry point to the program */
-
-ENTRY(vexStartup)
 
 /* Define the sections, and where they are mapped in memory */
 
 SECTIONS
 {
   .hot_init : {
+    __hot_init = .;
     KEEP (*(.hot_init*))
-    KEEP (*(.hot_table*))
-  } > HOT_INIT
-
+  } > HOT_MEMORY
 .text : {
    KEEP (*(.vectors))
    /* boot data should be exactly 32 bytes long */
@@ -58,15 +55,15 @@ SECTIONS
    *(.vfp11_veneer)
    *(.ARM.extab)
    *(.gnu.linkonce.armextab.*)
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .init : {
    KEEP (*(.init))
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .fini : {
    KEEP (*(.fini))
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .rodata : {
    __rodata_start = .;
@@ -74,14 +71,14 @@ SECTIONS
    *(.rodata.*)
    *(.gnu.linkonce.r.*)
    __rodata_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .rodata1 : {
    __rodata1_start = .;
    *(.rodata1)
    *(.rodata1.*)
    __rodata1_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .sdata2 : {
    __sdata2_start = .;
@@ -89,7 +86,7 @@ SECTIONS
    *(.sdata2.*)
    *(.gnu.linkonce.s2.*)
    __sdata2_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .sbss2 : {
    __sbss2_start = .;
@@ -97,7 +94,7 @@ SECTIONS
    *(.sbss2.*)
    *(.gnu.linkonce.sb2.*)
    __sbss2_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .data : {
    __data_start = .;
@@ -108,18 +105,18 @@ SECTIONS
    *(.got)
    *(.got.plt)
    __data_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .data1 : {
    __data1_start = .;
    *(.data1)
    *(.data1.*)
    __data1_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .got : {
    *(.got)
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .ctors : {
    __CTOR_LIST__ = .;
@@ -130,7 +127,7 @@ SECTIONS
    KEEP (*(.ctors))
    __CTOR_END__ = .;
    ___CTORS_END___ = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .dtors : {
    __DTOR_LIST__ = .;
@@ -141,67 +138,67 @@ SECTIONS
    KEEP (*(.dtors))
    __DTOR_END__ = .;
    ___DTORS_END___ = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .fixup : {
    __fixup_start = .;
    *(.fixup)
    __fixup_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .eh_frame : {
    *(.eh_frame)
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .eh_framehdr : {
    __eh_framehdr_start = .;
    *(.eh_framehdr)
    __eh_framehdr_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .gcc_except_table : {
    *(.gcc_except_table)
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .mmu_tbl (ALIGN(16384)) : {
    __mmu_tbl_start = .;
    *(.mmu_tbl)
    __mmu_tbl_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .ARM.exidx : {
    __exidx_start = .;
    *(.ARM.exidx*)
    *(.gnu.linkonce.armexidix.*.*)
    __exidx_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .preinit_array : {
    __preinit_array_start = .;
    KEEP (*(SORT(.preinit_array.*)))
    KEEP (*(.preinit_array))
    __preinit_array_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .init_array : {
    __init_array_start = .;
    KEEP (*(SORT(.init_array.*)))
    KEEP (*(.init_array))
    __init_array_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .fini_array : {
    __fini_array_start = .;
    KEEP (*(SORT(.fini_array.*)))
    KEEP (*(.fini_array))
    __fini_array_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .ARM.attributes : {
    __ARM.attributes_start = .;
    *(.ARM.attributes)
    __ARM.attributes_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .sdata : {
    __sdata_start = .;
@@ -209,7 +206,7 @@ SECTIONS
    *(.sdata.*)
    *(.gnu.linkonce.s.*)
    __sdata_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .sbss (NOLOAD) : {
    __sbss_start = .;
@@ -217,7 +214,7 @@ SECTIONS
    *(.sbss.*)
    *(.gnu.linkonce.sb.*)
    __sbss_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .tdata : {
    __tdata_start = .;
@@ -225,7 +222,7 @@ SECTIONS
    *(.tdata.*)
    *(.gnu.linkonce.td.*)
    __tdata_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .tbss : {
    __tbss_start = .;
@@ -233,7 +230,7 @@ SECTIONS
    *(.tbss.*)
    *(.gnu.linkonce.tb.*)
    __tbss_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 .bss (NOLOAD) : {
    __bss_start = .;
@@ -242,53 +239,12 @@ SECTIONS
    *(.gnu.linkonce.b.*)
    *(COMMON)
    __bss_end = .;
-} > COLD_MEMORY
+} > HOT_MEMORY
 
 _SDA_BASE_ = __sdata_start + ((__sbss_end - __sdata_start) / 2 );
 
 _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
 
-/* Generate Stack and Heap definitions */
-
-.heap (NOLOAD) : {
-   . = ALIGN(16);
-   _heap = .;
-   HeapBase = .;
-   _heap_start = .;
-   . += _HEAP_SIZE;
-   _heap_end = .;
-   HeapLimit = .;
-} > HEAP
-
-.stack (NOLOAD) : {
-   . = ALIGN(16);
-   _stack_end = .;
-   . += _STACK_SIZE;
-   . = ALIGN(16);
-   _stack = .;
-   __stack = _stack;
-   . = ALIGN(16);
-   _irq_stack_end = .;
-   . += _IRQ_STACK_SIZE;
-   . = ALIGN(16);
-   __irq_stack = .;
-   _supervisor_stack_end = .;
-   . += _SUPERVISOR_STACK_SIZE;
-   . = ALIGN(16);
-   __supervisor_stack = .;
-   _abort_stack_end = .;
-   . += _ABORT_STACK_SIZE;
-   . = ALIGN(16);
-   __abort_stack = .;
-   _fiq_stack_end = .;
-   . += _FIQ_STACK_SIZE;
-   . = ALIGN(16);
-   __fiq_stack = .;
-   _undef_stack_end = .;
-   . += _UNDEF_STACK_SIZE;
-   . = ALIGN(16);
-   __undef_stack = .;
-} > COLD_MEMORY
-
+/* HOT memory doesn't need a stack or heap */
 _end = .;
 }

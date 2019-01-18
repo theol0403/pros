@@ -122,8 +122,8 @@
 #define configUSE_TICK_HOOK                     0
 #define configMAX_PRIORITIES                    ( 16 )
 #define configMINIMAL_STACK_SIZE                ( ( unsigned short ) 250 )
-// allocate 1 MB for FreeRTOS heap
-#define configTOTAL_HEAP_SIZE                   ( 0x100000 )
+// allocate 6 MB for FreeRTOS heap
+#define configTOTAL_HEAP_SIZE                   ( 0x600000 )
 #define configMAX_TASK_NAME_LEN                 ( 32 )
 #define configUSE_TRACE_FACILITY                1
 #define INCLUDE_uxTaskGetStackHighWaterMark     1
