@@ -1,40 +1,26 @@
 /*******************************************************************/
 /*                                                                 */
-/* V5 SDK linker script v1.00                                      */
-/*                                                                 */
-/* PROS NOTE: This file was modified off of the ldscript in the    */
-/* CORTEX_A9_ZC702 FreeRTOS demo                                   */
-/*                                                                 */
-/* Copyright (c) 2017 IFI, Inc.  All rights reserved.              */
-/*                                                                 */
-/* Description : Cortex-A9 Linker Script                           */
+/* This file is nearly the same as v5.ld, except that everything   */
+/* goes in HOT_MEMORY and HOT user code doesn't need heap or stack */
+/* (only the cold memory code - PROS does)                         */
 /*                                                                 */
 /*******************************************************************/
 
-/* This stack is used during initialization, but FreeRTOS tasks have their own
-   stack allocated in BSS or Heap (kernel tasks in FreeRTOS .bss heap; user tasks
-   in standard heap) */
-_STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x2000;
-
-_ABORT_STACK_SIZE = DEFINED(_ABORT_STACK_SIZE) ? _ABORT_STACK_SIZE : 1024;
-_SUPERVISOR_STACK_SIZE = DEFINED(_SUPERVISOR_STACK_SIZE) ? _SUPERVISOR_STACK_SIZE : 2048;
-_IRQ_STACK_SIZE = DEFINED(_IRQ_STACK_SIZE) ? _IRQ_STACK_SIZE : 1024;
-_FIQ_STACK_SIZE = DEFINED(_FIQ_STACK_SIZE) ? _FIQ_STACK_SIZE : 1024;
-_UNDEF_STACK_SIZE = DEFINED(_UNDEF_STACK_SIZE) ? _UNDEF_STACK_SIZE : 1024;
-
 /* Define Memories in the system */
-
 INCLUDE ./v5-common.ld
 
-/* Specify the default entry point to the program */
-ENTRY(install_hot_table) /* yes */
-/* Define the sections, and where they are mapped in memory */
+/* Make install_hot_table entry point so that linker can prune from there */
+ENTRY(install_hot_table)
 
+/* Define the sections, and where they are mapped in memory */
 SECTIONS
 {
-  .hot_init : {
-    KEEP (*(.hot_init))
-  } > HOT_MEMORY
+/* Since install_hot_table is the entry point, it should be the first address
+ * in memory, but this makes sure it happens explicitly and consistently with
+ * cold linkage */
+.hot_init : {
+  KEEP (*(.hot_init))
+} > HOT_MEMORY
 .text : {
    KEEP (*(.vectors))
    /* boot data should be exactly 32 bytes long */
