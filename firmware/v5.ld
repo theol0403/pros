@@ -36,8 +36,7 @@ SECTIONS
 {
   .hot_init : {
     KEEP (*(.hot_init*))
-    KEEP (*(.hot_table*))
-  } > HOT_INIT
+  } > HOT_MEMORY
 
 .text : {
    KEEP (*(.vectors))

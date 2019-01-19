@@ -27,14 +27,13 @@ _UNDEF_STACK_SIZE = DEFINED(_UNDEF_STACK_SIZE) ? _UNDEF_STACK_SIZE : 1024;
 INCLUDE ./v5-common.ld
 
 /* Specify the default entry point to the program */
-
+ENTRY(install_hot_table) /* yes */
 /* Define the sections, and where they are mapped in memory */
 
 SECTIONS
 {
   .hot_init : {
-    __hot_init = .;
-    KEEP (*(.hot_init*))
+    KEEP (*(.hot_init))
   } > HOT_MEMORY
 .text : {
    KEEP (*(.vectors))

@@ -87,21 +87,19 @@ $(PACKAGEELF): $(LIBAR) $(wildcard $(FWDIR)/*.a)
 	$(VV)mkdir -p $(dir $@)
 	$(call _pros_ld_timestamp)
 	@echo -n "Packaging project with $^ "
-	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)--whole-archive $^ -lstdc++ -Wl$(COMMA)--no-whole-archive -Wl$(COMMA)-T $(FWDIR)/v5.ld -o $@ -Wl$(COMMA)--start-group -lm -lsupc++ -lc -lgcc -Wl$(COMMA)--end-group ,)
-
-$(PACKAGELIB): $(PACKAGEELF)
-	@echo -n "Trimming sections "
-	$(call test_output,$D$(OBJCOPY) --extract-symbol --weaken --strip-debug --strip-symbol=install_hot_table --strip-symbol=cpp_initialize --strip-symbol=initialize $< $@, $(DONE_STRING))
+	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)--whole-archive $^ -lstdc++ -Wl$(COMMA)--no-whole-archive -Wl$(COMMA)-T$(FWDIR)/v5.ld -o $@ -Wl$(COMMA)--start-group -lm -lsupc++ -lc -lgcc -Wl$(COMMA)--end-group ,)
+	@echo -n "Stripping library "
+	$(call test_output,$D$(OBJCOPY) --strip-symbol=install_hot_table $@ $@, $(DONE_STRING))
 
 $(PACKAGEBIN): $(PACKAGEELF)
 	$(VV)mkdir -p $(dir $@)
 	@echo -n "Creating package binary for $(DEVICE) "
 	$(call test_output,$D$(OBJCOPY) $< -O binary -R .hot_init $@,$(DONE_STRING))
 
-$(OUTELF_PACKAGED): $(PACKAGELIB) $(call GETALLOBJ,$(EXCLUDE_SRCDIRS))
+$(OUTELF_PACKAGED): $(PACKAGEELF) $(call GETALLOBJ,$(EXCLUDE_SRCDIRS))
 	$(call _pros_ld_timestamp)
 	@echo -n "Linking project with $(ARCHIVE_TEXT_LIST) "
-	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)-R$< $(filter-out $<,$^) $(LDTIMEOBJ) $(LIBRARIES) -Wl$(COMMA)-T $(FWDIR)/v5.ld -o $@,$(OK_STRING))
+	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)-R$< $(filter-out $<,$^) $(LDTIMEOBJ) $(LIBRARIES) -Wl$(COMMA)-T$(FWDIR)/v5-hot.ld -o $@,$(OK_STRING))
 	@echo Section sizes:
 	-$(VV)$(SIZETOOL) $(SIZEFLAGS) $@ $(SIZES_SED) $(SIZES_NUMFMT)
 
