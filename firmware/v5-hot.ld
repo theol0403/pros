@@ -19,6 +19,7 @@ SECTIONS
  * in memory, but this makes sure it happens explicitly and consistently with
  * cold linkage */
 .hot_init : {
+  KEEP (*(.hot_magic))
   KEEP (*(.hot_init))
 } > HOT_MEMORY
 .text : {

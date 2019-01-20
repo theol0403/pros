@@ -6,4 +6,4 @@ struct hot_table {
   void (*initialize)();
 };
 
-extern struct hot_table* HOT_TABLE;
+extern struct hot_table* const HOT_TABLE;

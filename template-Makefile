@@ -94,7 +94,7 @@ $(PACKAGEELF): $(LIBAR) $(wildcard $(FWDIR)/*.a)
 $(PACKAGEBIN): $(PACKAGEELF)
 	$(VV)mkdir -p $(dir $@)
 	@echo -n "Creating package binary for $(DEVICE) "
-	$(call test_output,$D$(OBJCOPY) $< -O binary -R .hot_init $@,$(DONE_STRING))
+	$(call test_output,$D$(OBJCOPY) $< -O binary -R .hot_init -R .hot_magic $@,$(DONE_STRING))
 
 $(OUTELF_PACKAGED): $(PACKAGEELF) $(call GETALLOBJ,$(EXCLUDE_SRCDIRS))
 	$(call _pros_ld_timestamp)
@@ -109,7 +109,7 @@ $(OUTBIN_PACKAGED): $(OUTELF_PACKAGED) $(PACKAGEBIN)
 
 $(OUTBIN): $(OUTELF) $(BINDIR)
 	@echo -n "Creating $@ for $(DEVICE) "
-	$(call test_output,$D$(OBJCOPY) $< -O binary $@,$(DONE_STRING))
+	$(call test_output,$D$(OBJCOPY) $< -O binary -R .hot_init -R .hot_magic  $@,$(DONE_STRING))
 
 $(OUTELF): $(call GETALLOBJ,$(EXCLUDE_SRCDIRS))
 	$(call _pros_ld_timestamp)

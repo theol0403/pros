@@ -37,7 +37,8 @@ SECTIONS
 /* THis will get stripped out before uploading, but we need to place code
    here so we can at least link to it (install_hot_table) */
 .hot_init : {
-  KEEP (*(.hot_init*))
+  KEEP (*(.hot_magic))
+  KEEP (*(.hot_init))
 } > HOT_MEMORY
 
 .text : {
