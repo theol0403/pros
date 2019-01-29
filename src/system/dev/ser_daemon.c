@@ -28,13 +28,14 @@
 __attribute__((weak)) char const* _PROS_COMPILE_TIMESTAMP = "Unknown";
 __attribute__((weak)) char const* _PROS_COMPILE_DIRECTORY = "Unknown";
 
-__attribute__((constructor (102))) static void install_hot() {
-	printf("ser_daemon %p %p\n", &HOT_TABLE, HOT_TABLE.compile_timestamp);
-	if (HOT_TABLE.compile_directory) {
-		_PROS_COMPILE_DIRECTORY = HOT_TABLE.compile_directory;
+__attribute__((constructor (102)))
+static void install_hot() {
+  printf("%s (%s) %p %p\n", __FUNCTION__, __FILE__, (void*)HOT_TABLE, (void*)_PROS_COMPILE_TIMESTAMP);
+	if (HOT_TABLE->compile_directory) {
+		_PROS_COMPILE_DIRECTORY = HOT_TABLE->compile_directory;
 	}
-	if (HOT_TABLE.compile_timestamp) {
-		_PROS_COMPILE_TIMESTAMP = HOT_TABLE.compile_timestamp;
+	if (HOT_TABLE->compile_timestamp) {
+		_PROS_COMPILE_TIMESTAMP = HOT_TABLE->compile_timestamp;
 	}
 }
 

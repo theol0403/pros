@@ -4,7 +4,6 @@
 
 // stored only in cold
 struct hot_table __HOT_TABLE = { 0 };
-// The pointer will be repeated in both hot and cold,  but will both point to above wihich is stored in cold region
 struct hot_table* const HOT_TABLE = &__HOT_TABLE;
 
 __attribute__((section (".hot_magic"))) uint32_t MAGIC[] = {0x52616368, 0x8CEF7310};
@@ -17,21 +16,23 @@ uint32_t const volatile * const MAGIC_ADDR = MAGIC;
 extern char const* _PROS_COMPILE_TIMESTAMP;
 extern char const* _PROS_COMPILE_DIRECTORY;
 extern void initialize();
+extern void cpp_initialize();
 
 __attribute__((section (".hot_init")))
-void install_hot_table() {
+void install_hot_table(struct hot_table* const tbl) {
   // TODO BEFORE RELEASE: set up bss, call ctors
-  printf("%s %p %p\n", __FUNCTION__, (void*)HOT_TABLE, (void*)_PROS_COMPILE_TIMESTAMP);
-  HOT_TABLE->compile_timestamp = _PROS_COMPILE_TIMESTAMP;
-  HOT_TABLE->compile_directory = _PROS_COMPILE_DIRECTORY;
-  HOT_TABLE->initialize = initialize;
+  printf("%s %p %p\n", __FUNCTION__, (void*)tbl, (void*)_PROS_COMPILE_TIMESTAMP);
+  tbl->compile_timestamp = _PROS_COMPILE_TIMESTAMP;
+  tbl->compile_directory = _PROS_COMPILE_DIRECTORY;
+  tbl->initialize = initialize;
+  tbl->cpp_initialize = cpp_initialize;
 }
 
 void invoke_install_hot_table() {
-  printf("%s %p\n", __FUNCTION__, (void*)install_hot_table);
+  printf("%s %p %p %x %x\n", __FUNCTION__, (void*)install_hot_table, (void*)HOT_TABLE, MAGIC_ADDR[0], MAGIC_ADDR[1]);
   if(MAGIC_ADDR[0] == 0x52616368 && MAGIC_ADDR[1] == 0x8CEF7310) {
-    install_hot_table();
+    install_hot_table(HOT_TABLE);
   } else {
-    memset(HOT_TABLE, sizeof(*HOT_TABLE), 0);
+    memset(HOT_TABLE, 0, sizeof(*HOT_TABLE));
   }
 }

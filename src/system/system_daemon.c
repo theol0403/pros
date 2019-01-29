@@ -12,6 +12,7 @@
  */
 
 #include "kapi.h"
+#include "system/hot.h"
 #include "system/optimizers.h"
 #include "v5_api.h"
 
@@ -140,13 +141,15 @@ extern void cpp_opcontrol();
 extern void cpp_disabled();
 extern void cpp_competition_initialize();
 
+void (*user_cpp_initialize)();
+
 // default implementations of the different competition modes attempt to call
 // the C++ linkage version of the function
 __attribute__((weak)) void autonomous() {
 	cpp_autonomous();
 }
 __attribute__((weak)) void initialize() {
-	cpp_initialize();
+	user_cpp_initialize();
 }
 __attribute__((weak)) void opcontrol() {
 	cpp_opcontrol();
@@ -158,6 +161,13 @@ __attribute__((weak)) void competition_initialize() {
 	cpp_competition_initialize();
 }
 
+void (*user_initialize)();
+
+__attribute__((constructor (102)))
+static void setup_user_functions() {
+    user_initialize = HOT_TABLE->initialize ? HOT_TABLE->initialize : initialize;
+    user_cpp_initialize = HOT_TABLE->cpp_initialize ? HOT_TABLE->cpp_initialize : cpp_initialize;
+}
 // these functions are what actually get called by the system daemon, which
 // attempt to call whatever the user declares
 static void _competition_initialize_task(void* ign) {
@@ -165,7 +175,7 @@ static void _competition_initialize_task(void* ign) {
 }
 
 static void _initialize_task(void* ign) {
-	initialize();
+	user_initialize();
 	task_notify(system_daemon_task);
 }
 static void _autonomous_task(void* ign) {
