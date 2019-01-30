@@ -96,12 +96,12 @@ $(LIBAR): fix-libv5rts $(call GETALLOBJ,$(EXCLUDE_SRCDIRS) $(EXCLUDE_FROM_LIB))
 $(OUTBIN): $(OUTELF)
 	$(VV)mkdir -p $(dir $@)
 	@echo -n "Creating $@ for $(DEVICE) "
-	$(call test_output,$D$(OBJCOPY) $< -O binary $@,$(DONE_STRING))
+	$(call test_output,$D$(OBJCOPY) $< -O binary -R .hot_init -R .hot_magic  $@,$(DONE_STRING))
 
 $(OUTELF): fix-libv5rts $(call GETALLOBJ,$(EXCLUDE_SRCDIRS))
 	$(call _pros_ld_timestamp)
 	@echo -n "Linking project with $(ARCHIVE_TEXT_LIST) "
-	$(call test_output,$D$(LD) $(LDFLAGS) $(filter-out fix-libv5rts,$^) $(LDTIMEOBJ) $(LIBRARIES) -o $@,$(OK_STRING))
+	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)-T$(FWDIR)/v5.ld $(filter-out fix-libv5rts,$^) $(LDTIMEOBJ) $(LIBRARIES) -o $@,$(OK_STRING))
 	@echo Section sizes:
 	-$(VV)$(SIZETOOL) $(SIZEFLAGS) $@ $(SIZES_SED) $(SIZES_NUMFMT)
 

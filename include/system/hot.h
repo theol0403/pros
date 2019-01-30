@@ -1,10 +1,16 @@
 #pragma once
 
+#include "system/user_functions.h"
+
 struct hot_table {
   char const* compile_timestamp;
   char const* compile_directory;
-  void (*initialize)();
-  void (*cpp_initialize)();
+
+  struct {
+#define FUNC(F) void (*F)();
+#include "system/user_functions/list.h"
+#undef FUNC
+  } functions;
 };
 
 extern struct hot_table* const HOT_TABLE;
