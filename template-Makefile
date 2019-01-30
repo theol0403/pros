@@ -87,7 +87,7 @@ $(PACKAGEELF): $(LIBAR) $(wildcard $(FWDIR)/*.a)
 	$(VV)mkdir -p $(dir $@)
 	$(call _pros_ld_timestamp)
 	@echo -n "Packaging project with $^ "
-	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)--whole-archive $^ -lstdc++ -Wl$(COMMA)--no-whole-archive -Wl$(COMMA)-T$(FWDIR)/v5.ld -o $@ -Wl$(COMMA)--start-group -lm -lsupc++ -lc -lgcc -Wl$(COMMA)--end-group ,)
+	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)--gc-keep-exported -Wl$(COMMA)--whole-archive $^ -lstdc++ -Wl$(COMMA)--no-whole-archive -Wl$(COMMA)-T$(FWDIR)/v5.ld -o $@ -Wl$(COMMA)--start-group -lm -lsupc++ -lc -lgcc -Wl$(COMMA)--end-group ,)
 	@echo -n "Stripping library "
 	$(call test_output,$D$(OBJCOPY) --strip-symbol=install_hot_table $@ $@, $(DONE_STRING))
 
@@ -99,7 +99,7 @@ $(PACKAGEBIN): $(PACKAGEELF)
 $(OUTELF_PACKAGED): $(PACKAGEELF) $(call GETALLOBJ,$(EXCLUDE_SRCDIRS))
 	$(call _pros_ld_timestamp)
 	@echo -n "Linking project with $(ARCHIVE_TEXT_LIST) "
-	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)-R$< $(filter-out $<,$^) $(LDTIMEOBJ) $(LIBRARIES) -Wl$(COMMA)-nostartfiles -Wl$(COMMA)-T$(FWDIR)/v5-hot.ld -o $@,$(OK_STRING))
+	$(call test_output,$D$(LD) $(LDFLAGS) -Wl$(COMMA)-R$< $(filter-out $<,$^) $(LDTIMEOBJ) $(LIBRARIES) -Wl$(COMMA)-nostartfiles -Wl$(COMMA)-T$(FWDIR)/v5-hot.ld -Wl$(COMMA)-o $@,$(OK_STRING))
 	@echo Section sizes:
 	-$(VV)$(SIZETOOL) $(SIZEFLAGS) $@ $(SIZES_SED) $(SIZES_NUMFMT)
 
