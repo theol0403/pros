@@ -1,0 +1,6 @@
+C:
+  beautifiers:
+    - ClangFormat
+C++:
+  beautifiers:
+    - ClangFormat
