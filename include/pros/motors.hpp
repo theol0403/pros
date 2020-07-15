@@ -20,6 +20,7 @@
 #define _PROS_MOTORS_HPP_
 
 #include <cstdint>
+
 #include "pros/motors.h"
 
 namespace pros {
@@ -41,6 +42,18 @@ class Motor {
 	 *        True reverses the motor, false is default
 	 * \param encoder_units
 	 *        The motor's encoder units
+	 *
+	 * \b Example
+	 * \code
+	 * void opcontrol() {
+	 *   pros::Motor motor (1, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
+	 *   pros::Controller master (E_CONTROLLER_MASTER);
+	 *   while (true) {
+	 *     motor.move(master.get_analog(E_CONTROLLER_ANALOG_LEFT_Y));
+	 *     pros::delay(2);
+	 *   }
+	 * }
+	 * \endcode
 	 */
 	explicit Motor(const std::uint8_t port, const motor_gearset_e_t gearset, const bool reverse,
 	               const motor_encoder_units_e_t encoder_units);
@@ -53,11 +66,12 @@ class Motor {
 
 	explicit Motor(const std::uint8_t port);
 
-	/****************************************************************************/
-	/**                         Motor movement functions                       **/
-	/**                                                                        **/
-	/**          These functions allow programmers to make motors move         **/
-	/****************************************************************************/
+	/**************************************************************************/
+	/*                         Motor movement functions                       */
+	/*                                                                        */
+	/*          These functions allow programmers to make motors move         */
+	/**************************************************************************/
+
 	/**
 	 * Sets the voltage for the motor from -128 to 127.
 	 *
@@ -74,6 +88,18 @@ class Motor {
 	 *
 	 * \return 1 if the operation was successful or PROS_ERR if the operation
 	 * failed, setting errno.
+	 *
+	 * \b Example
+	 * ```
+	 * void opcontrol() {
+	 *   pros::Motor motor (1, E_MOTOR_GEARSET_18);
+	 *   pros::Controller master (E_CONTROLLER_MASTER);
+	 *   while (true) {
+	 *     motor = master.get_analog(E_CONTROLLER_ANALOG_LEFT_Y);
+	 *     pros::delay(2);
+	 *   }
+	 * }
+	 * ```
 	 */
 	virtual std::int32_t operator=(std::int32_t voltage) const;
 
@@ -93,6 +119,18 @@ class Motor {
 	 *
 	 * \return 1 if the operation was successful or PROS_ERR if the operation
 	 * failed, setting errno.
+	 *
+	 * \b Example
+	 * \code
+	 * void opcontrol() {
+	 *   pros::Motor motor (1);
+	 *   pros::Controller master (E_CONTROLLER_MASTER);
+	 *   while (true) {
+	 *     motor.move(master.get_analog(E_CONTROLLER_ANALOG_LEFT_Y));
+	 *     pros::delay(2);
+	 *   }
+	 * }
+	 * \endcode
 	 */
 	virtual std::int32_t move(std::int32_t voltage) const;
 
@@ -117,6 +155,27 @@ class Motor {
 	 *
 	 * \return 1 if the operation was successful or PROS_ERR if the operation
 	 * failed, setting errno.
+	 *
+	 * \b Example
+	 * \code
+	 * void autonomous() {
+	 *   pros::Motor motor (1);
+	 *   motor.move_absolute(100, 100); // Moves 100 units forward
+	 *   while (!((motor.get_position() < 105) && (motor.get_position() > 95))) {
+	 *     // Continue running this loop as long as the motor is not within +-5 units of its goal
+	 *     pros::delay(2);
+	 *   }
+	 *   motor.move_absolute(100, 100); // This does not cause a movement
+	 *   while (!((motor.get_position() < 105) && (motor.get_position() > 95))) {
+	 *     pros::delay(2);
+	 *   }
+	 *   motor.tare_position();
+	 *   motor.move_absolute(100, 100); // Moves 100 units forward
+	 *   while (!((motor.get_position() < 105) && (motor.get_position() > 95))) {
+	 *     pros::delay(2);
+	 *   }
+	 * }
+	 * \endcode
 	 */
 	virtual std::int32_t move_absolute(const double position, const std::int32_t velocity) const;
 
@@ -142,6 +201,22 @@ class Motor {
 	 *
 	 * \return 1 if the operation was successful or PROS_ERR if the operation
 	 * failed, setting errno.
+	 *
+	 * \b Example
+	 * \code
+	 * void autonomous() {
+	 *   pros::Motor motor (1);
+	 *   motor.move_relative(100, 100); // Moves 100 units forward
+	 *   while (!((motor.get_position() < 105) && (motor.get_position() > 95))) {
+	 *     // Continue running this loop as long as the motor is not within +-5 units of its goal
+	 *     pros::delay(2);
+	 *   }
+	 *   motor.move_relative(100, 100); // Also moves 100 units forward
+	 *   while (!((motor.get_position() < 205) && (motor.get_position() > 195))) {
+	 *     pros::delay(2);
+	 *   }
+	 * }
+	 * \endcode
 	 */
 	virtual std::int32_t move_relative(const double position, const std::int32_t velocity) const;
 
@@ -164,6 +239,16 @@ class Motor {
 	 *
 	 * \return 1 if the operation was successful or PROS_ERR if the operation
 	 * failed, setting errno.
+	 *
+	 * \b Example
+	 * \code
+	 * void autonomous() {
+	 *   pros::Motor motor (1);
+	 *   motor.move_velocity(100);
+	 *   pros::delay(1000); // Move at 100 RPM for 1 second
+	 *   motor.move_velocity(0);
+	 * }
+	 * \endcode
 	 */
 	virtual std::int32_t move_velocity(const std::int32_t velocity) const;
 
