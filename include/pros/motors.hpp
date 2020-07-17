@@ -66,11 +66,9 @@ class Motor {
 
 	explicit Motor(const std::uint8_t port);
 
-	/**************************************************************************/
-	/*                         Motor movement functions                       */
-	/*                                                                        */
-	/*          These functions allow programmers to make motors move         */
-	/**************************************************************************/
+	/// \name Motor movement functions
+	/// These functions allow programmers to make motors move
+	///@{
 
 	/**
 	 * Sets the voltage for the motor from -128 to 127.
@@ -287,6 +285,12 @@ class Motor {
 	 */
 	virtual std::int32_t modify_profiled_velocity(const std::int32_t velocity) const;
 
+	///@}
+
+	/// \name Motor telemetry functions
+	/// These functions allow programmers to collect telemetry from motors
+	///@{
+
 	/**
 	 * Gets the target position set for the motor by the user.
 	 *
@@ -310,12 +314,6 @@ class Motor {
 	 * PROS_ERR if the operation failed, setting errno.
 	 */
 	virtual std::int32_t get_target_velocity(void) const;
-
-	/****************************************************************************/
-	/**                        Motor telemetry functions                       **/
-	/**                                                                        **/
-	/**    These functions allow programmers to collect telemetry from motors  **/
-	/****************************************************************************/
 
 	/**
 	 * Gets the actual velocity of the motor.
@@ -536,11 +534,11 @@ class Motor {
 	 */
 	virtual std::int32_t get_voltage(void) const;
 
-	/****************************************************************************/
-	/**                      Motor configuration functions                     **/
-	/**                                                                        **/
-	/**  These functions allow programmers to configure the behavior of motors **/
-	/****************************************************************************/
+	///@}
+
+	/// \name Motor configuration functions
+	/// These functions allow programmers to configure the behavior of motors
+	///@{
 
 	/**
 	 * Sets the position for the motor in its encoder units.
@@ -633,6 +631,7 @@ class Motor {
 	virtual std::int32_t set_gearing(const motor_gearset_e_t gearset) const;
 
 	/**
+	 * \private
 	 * Takes in floating point values and returns a properly formatted pid struct.
 	 * The motor_pid_s_t struct is in 4.4 format, i.e. 0x20 is 2.0, 0x21 is
 	 * 2.0625, etc.
@@ -653,6 +652,7 @@ class Motor {
 	static motor_pid_s_t convert_pid(double kf, double kp, double ki, double kd);
 
 	/**
+	 * \private
 	 * Takes in floating point values and returns a properly formatted pid struct.
 	 * The motor_pid_s_t struct is in 4.4 format, i.e. 0x20 is 2.0, 0x21 is
 	 * 2.0625, etc.
@@ -683,6 +683,7 @@ class Motor {
 	                                           double threshold, double loopspeed);
 
 	/**
+	 * \private
 	 * Sets one of motor_pid_s_t for the motor. This intended to just modify the
 	 * main PID constants.
 	 *
@@ -702,6 +703,7 @@ class Motor {
 	virtual std::int32_t set_pos_pid(const motor_pid_s_t pid) const;
 
 	/**
+	 * \private
 	 * Sets one of motor_pid_full_s_t for the motor.
 	 *
 	 * Only non-zero values of the struct will change the existing motor
@@ -720,6 +722,7 @@ class Motor {
 	virtual std::int32_t set_pos_pid_full(const motor_pid_full_s_t pid) const;
 
 	/**
+	 * \private
 	 * Sets one of motor_pid_s_t for the motor. This intended to just modify the
 	 * main PID constants.
 	 *
@@ -739,6 +742,7 @@ class Motor {
 	virtual std::int32_t set_vel_pid(const motor_pid_s_t pid) const;
 
 	/**
+	 * \private
 	 * Sets one of motor_pid_full_s_t for the motor.
 	 *
 	 * Only non-zero values of the struct will change the existing motor
@@ -905,6 +909,8 @@ class Motor {
 	 * \return The motor's port number.
 	 */
 	virtual std::uint8_t get_port(void) const;
+
+	///@}
 
 	private:
 	const std::uint8_t _port;
