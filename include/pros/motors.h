@@ -1,5 +1,6 @@
 /**
  * \file pros/motors.h
+ * \ingroup c-motors
  *
  * Contains prototypes for the V5 Motor-related functions.
  *
@@ -14,6 +15,9 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * \defgroup c-motors Motors C API
+ * \note Additional example code for this module can be found in its [Tutorial](@ref motors).
  */
 
 #ifndef _PROS_MOTORS_H_
@@ -28,11 +32,155 @@ namespace pros {
 namespace c {
 #endif
 
-/******************************************************************************/
-/**                         Motor movement functions                         **/
-/**                                                                          **/
-/**          These functions allow programmers to make motors move           **/
-/******************************************************************************/
+/** \addtogroup c-motors
+ *  @{
+ */
+
+typedef enum motor_fault_e {
+	E_MOTOR_FAULT_NO_FAULTS = 0x00,
+	E_MOTOR_FAULT_MOTOR_OVER_TEMP = 0x01,  ///< Analogous to motor_is_over_temp()
+	E_MOTOR_FAULT_DRIVER_FAULT = 0x02,     ///< Indicates a motor h-bridge fault
+	E_MOTOR_FAULT_OVER_CURRENT = 0x04,     ///< Analogous to motor_is_over_current()
+	E_MOTOR_FAULT_DRV_OVER_CURRENT = 0x08  ///< Indicates an h-bridge over current
+} motor_fault_e_t;
+
+#ifdef PROS_USE_SIMPLE_NAMES
+#ifdef __cplusplus
+#define MOTOR_FAULT_NO_FAULTS pros::E_MOTOR_FAULT_NO_FAULTS
+#define MOTOR_FAULT_MOTOR_OVER_TEMP pros::E_MOTOR_FAULT_MOTOR_OVER_TEMP
+#define MOTOR_FAULT_DRIVER_FAULT pros::E_MOTOR_FAULT_DRIVER_FAULT
+#define MOTOR_FAULT_OVER_CURRENT pros::E_MOTOR_FAULT_DRV_OVER_CURRENT
+#define MOTOR_FAULT_DRV_OVER_CURRENT pros::E_MOTOR_FAULT_DRV_OVER_CURRENT
+#else
+#define MOTOR_FAULT_NO_FAULTS E_MOTOR_FAULT_NO_FAULTS
+#define MOTOR_FAULT_MOTOR_OVER_TEMP E_MOTOR_FAULT_MOTOR_OVER_TEMP
+#define MOTOR_FAULT_DRIVER_FAULT E_MOTOR_FAULT_DRIVER_FAULT
+#define MOTOR_FAULT_OVER_CURRENT E_MOTOR_FAULT_DRV_OVER_CURRENT
+#define MOTOR_FAULT_DRV_OVER_CURRENT E_MOTOR_FAULT_DRV_OVER_CURRENT
+#endif
+#endif
+
+typedef enum motor_flag_e {
+	E_MOTOR_FLAGS_NONE = 0x00,
+	E_MOTOR_FLAGS_BUSY = 0x01,           ///< Cannot currently communicate to the motor
+	E_MOTOR_FLAGS_ZERO_VELOCITY = 0x02,  ///< Analogous to motor_is_stopped()
+	E_MOTOR_FLAGS_ZERO_POSITION = 0x04   ///< Analogous to motor_get_zero_position_flag()
+} motor_flag_e_t;
+
+#ifdef PROS_USE_SIMPLE_NAMES
+#ifdef __cplusplus
+#define MOTOR_FLAGS_NONE pros::E_MOTOR_FLAGS_NONE
+#define MOTOR_FLAGS_BUSY pros::E_MOTOR_FLAGS_BUSY
+#define MOTOR_FLAGS_ZERO_VELOCITY pros::E_MOTOR_FLAGS_ZERO_VELOCITY
+#define MOTOR_FLAGS_ZERO_POSITION pros::E_MOTOR_FLAGS_ZERO_POSITION
+#else
+#define MOTOR_FLAGS_NONE E_MOTOR_FLAGS_NONE
+#define MOTOR_FLAGS_BUSY E_MOTOR_FLAGS_BUSY
+#define MOTOR_FLAGS_ZERO_VELOCITY E_MOTOR_FLAGS_ZERO_VELOCITY
+#define MOTOR_FLAGS_ZERO_POSITION E_MOTOR_FLAGS_ZERO_POSITION
+#endif
+#endif
+
+/**
+ * Indicates the current 'brake mode' of a motor.
+ */
+typedef enum motor_brake_mode_e {
+	E_MOTOR_BRAKE_COAST = 0,  ///< Motor coasts when stopped, traditional behavior
+	E_MOTOR_BRAKE_BRAKE = 1,  ///< Motor brakes when stopped
+	E_MOTOR_BRAKE_HOLD = 2,   ///< Motor actively holds position when stopped
+	E_MOTOR_BRAKE_INVALID = INT32_MAX
+} motor_brake_mode_e_t;
+
+/**
+ * Indicates the units used by the motor encoders.
+ */
+typedef enum motor_encoder_units_e {
+	E_MOTOR_ENCODER_DEGREES = 0,    ///< Position is recorded as angle in degrees
+	                                ///< as a floating point number
+	E_MOTOR_ENCODER_ROTATIONS = 1,  ///< Position is recorded as angle in rotations
+	                                ///< as a floating point number
+	E_MOTOR_ENCODER_COUNTS = 2,     ///< Position is recorded as raw encoder ticks
+	                                ///< as a whole number
+	E_MOTOR_ENCODER_INVALID = INT32_MAX
+} motor_encoder_units_e_t;
+
+/**
+ * Indicates the current internal gear ratio of a motor.
+ */
+typedef enum motor_gearset_e {
+	E_MOTOR_GEARSET_36 = 0,  ///< 36:1, 100 RPM, Red gear set
+	E_MOTOR_GEARSET_18 = 1,  ///< 18:1, 200 RPM, Green gear set
+	E_MOTOR_GEARSET_06 = 2,  ///< 6:1, 600 RPM, Blue gear set
+	E_MOTOR_GEARSET_INVALID = INT32_MAX
+} motor_gearset_e_t;
+
+#ifdef PROS_USE_SIMPLE_NAMES
+#ifdef __cplusplus
+#define MOTOR_BRAKE_COAST pros::E_MOTOR_BRAKE_COAST
+#define MOTOR_BRAKE_BRAKE pros::E_MOTOR_BRAKE_BRAKE
+#define MOTOR_BRAKE_HOLD pros::E_MOTOR_BRAKE_HOLD
+#define MOTOR_BRAKE_INVALID pros::E_MOTOR_BRAKE_INVALID
+#define MOTOR_ENCODER_DEGREES pros::E_MOTOR_ENCODER_DEGREES
+#define MOTOR_ENCODER_ROTATIONS pros::E_MOTOR_ENCODER_ROTATIONS
+#define MOTOR_ENCODER_COUNTS pros::E_MOTOR_ENCODER_COUNTS
+#define MOTOR_ENCODER_INVALID pros::E_MOTOR_ENCODER_INVALID
+#define MOTOR_GEARSET_36 pros::E_MOTOR_GEARSET_36
+#define MOTOR_GEARSET_18 pros::E_MOTOR_GEARSET_18
+#define MOTOR_GEARSET_06 pros::E_MOTOR_GEARSET_06
+#define MOTOR_GEARSET_6 pros::E_MOTOR_GEARSET_06
+#define MOTOR_GEARSET_INVALID pros::E_MOTOR_GEARSET_INVALID
+#else
+#define MOTOR_BRAKE_COAST E_MOTOR_BRAKE_COAST
+#define MOTOR_BRAKE_BRAKE E_MOTOR_BRAKE_BRAKE
+#define MOTOR_BRAKE_HOLD E_MOTOR_BRAKE_HOLD
+#define MOTOR_BRAKE_INVALID E_MOTOR_BRAKE_INVALID
+#define MOTOR_ENCODER_DEGREES E_MOTOR_ENCODER_DEGREES
+#define MOTOR_ENCODER_ROTATIONS E_MOTOR_ENCODER_ROTATIONS
+#define MOTOR_ENCODER_COUNTS E_MOTOR_ENCODER_COUNTS
+#define MOTOR_ENCODER_INVALID E_MOTOR_ENCODER_INVALID
+#define MOTOR_GEARSET_36 E_MOTOR_GEARSET_36
+#define MOTOR_GEARSET_18 E_MOTOR_GEARSET_18
+#define MOTOR_GEARSET_06 E_MOTOR_GEARSET_06
+#define MOTOR_GEARSET_6 E_MOTOR_GEARSET_06
+#define MOTOR_GEARSET_INVALID E_MOTOR_GEARSET_INVALID
+#endif
+#endif
+
+/**
+ * Holds the information about a Motor's position or velocity PID controls.
+ *
+ * These values are in 4.4 format, meaning that a value of 0x20 represents 2.0,
+ * 0x21 represents 2.0625, 0x22 represents 2.125, etc.
+ */
+typedef struct motor_pid_full_s {
+	uint8_t kf;         /// The feedforward constant
+	uint8_t kp;         /// The proportional constant
+	uint8_t ki;         /// The integral constants
+	uint8_t kd;         /// The derivative constant
+	uint8_t filter;     /// A constant used for filtering the profile acceleration
+	uint16_t limit;     /// The integral limit
+	uint8_t threshold;  /// The threshold for determining if a position movement has
+	                    /// reached its goal. This has no effect for velocity PID
+	                    /// calculations.
+	uint8_t loopspeed;  /// The rate at which the PID computation is run in ms
+} motor_pid_full_s_t;
+
+/**
+ * Holds just the constants for a Motor's position or velocity PID controls.
+ *
+ * These values are in 4.4 format, meaning that a value of 0x20 represents 2.0,
+ * 0x21 represents 2.0625, 0x22 represents 2.125, etc.
+ */
+typedef struct motor_pid_s {
+	uint8_t kf;  /// The feedforward constant
+	uint8_t kp;  /// The proportional constant
+	uint8_t ki;  /// The integral constants
+	uint8_t kd;  /// The derivative constant
+} motor_pid_s_t;
+
+/// \name Motor movement functions
+/// These functions allow programmers to make motors move
+///@{
 
 /**
  * Sets the voltage for the motor from -127 to 127.
@@ -206,11 +354,11 @@ double motor_get_target_position(uint8_t port);
  */
 int32_t motor_get_target_velocity(uint8_t port);
 
-/******************************************************************************/
-/**                        Motor telemetry functions                         **/
-/**                                                                          **/
-/**    These functions allow programmers to collect telemetry from motors    **/
-/******************************************************************************/
+///@}
+
+/// \name Motor telemetry functions
+/// These functions allow programmers to collect telemetry from motors
+///@{
 
 /**
  * Gets the actual velocity of the motor.
@@ -343,38 +491,6 @@ int32_t motor_is_stopped(uint8_t port);
  */
 int32_t motor_get_zero_position_flag(uint8_t port);
 
-#ifdef __cplusplus
-}  // namespace c
-#endif
-
-typedef enum motor_fault_e {
-	E_MOTOR_FAULT_NO_FAULTS = 0x00,
-	E_MOTOR_FAULT_MOTOR_OVER_TEMP = 0x01,  // Analogous to motor_is_over_temp()
-	E_MOTOR_FAULT_DRIVER_FAULT = 0x02,     // Indicates a motor h-bridge fault
-	E_MOTOR_FAULT_OVER_CURRENT = 0x04,     // Analogous to motor_is_over_current()
-	E_MOTOR_FAULT_DRV_OVER_CURRENT = 0x08  // Indicates an h-bridge over current
-} motor_fault_e_t;
-
-#ifdef PROS_USE_SIMPLE_NAMES
-#ifdef __cplusplus
-#define MOTOR_FAULT_NO_FAULTS pros::E_MOTOR_FAULT_NO_FAULTS
-#define MOTOR_FAULT_MOTOR_OVER_TEMP pros::E_MOTOR_FAULT_MOTOR_OVER_TEMP
-#define MOTOR_FAULT_DRIVER_FAULT pros::E_MOTOR_FAULT_DRIVER_FAULT
-#define MOTOR_FAULT_OVER_CURRENT pros::E_MOTOR_FAULT_DRV_OVER_CURRENT
-#define MOTOR_FAULT_DRV_OVER_CURRENT pros::E_MOTOR_FAULT_DRV_OVER_CURRENT
-#else
-#define MOTOR_FAULT_NO_FAULTS E_MOTOR_FAULT_NO_FAULTS
-#define MOTOR_FAULT_MOTOR_OVER_TEMP E_MOTOR_FAULT_MOTOR_OVER_TEMP
-#define MOTOR_FAULT_DRIVER_FAULT E_MOTOR_FAULT_DRIVER_FAULT
-#define MOTOR_FAULT_OVER_CURRENT E_MOTOR_FAULT_DRV_OVER_CURRENT
-#define MOTOR_FAULT_DRV_OVER_CURRENT E_MOTOR_FAULT_DRV_OVER_CURRENT
-#endif
-#endif
-
-#ifdef __cplusplus
-namespace c {
-#endif
-
 /**
  * Gets the faults experienced by the motor.
  *
@@ -391,35 +507,6 @@ namespace c {
  * \return A bitfield containing the motor's faults.
  */
 uint32_t motor_get_faults(uint8_t port);
-
-#ifdef __cplusplus
-}  // namespace c
-#endif
-
-typedef enum motor_flag_e {
-	E_MOTOR_FLAGS_NONE = 0x00,
-	E_MOTOR_FLAGS_BUSY = 0x01,           // Cannot currently communicate to the motor
-	E_MOTOR_FLAGS_ZERO_VELOCITY = 0x02,  // Analogous to motor_is_stopped()
-	E_MOTOR_FLAGS_ZERO_POSITION = 0x04   // Analogous to motor_get_zero_position_flag()
-} motor_flag_e_t;
-
-#ifdef PROS_USE_SIMPLE_NAMES
-#ifdef __cplusplus
-#define MOTOR_FLAGS_NONE pros::E_MOTOR_FLAGS_NONE
-#define MOTOR_FLAGS_BUSY pros::E_MOTOR_FLAGS_BUSY
-#define MOTOR_FLAGS_ZERO_VELOCITY pros::E_MOTOR_FLAGS_ZERO_VELOCITY
-#define MOTOR_FLAGS_ZERO_POSITION pros::E_MOTOR_FLAGS_ZERO_POSITION
-#else
-#define MOTOR_FLAGS_NONE E_MOTOR_FLAGS_NONE
-#define MOTOR_FLAGS_BUSY E_MOTOR_FLAGS_BUSY
-#define MOTOR_FLAGS_ZERO_VELOCITY E_MOTOR_FLAGS_ZERO_VELOCITY
-#define MOTOR_FLAGS_ZERO_POSITION E_MOTOR_FLAGS_ZERO_POSITION
-#endif
-#endif
-
-#ifdef __cplusplus
-namespace c {
-#endif
 
 /**
  * Gets the flags set by the motor's operation.
@@ -538,116 +625,11 @@ double motor_get_torque(uint8_t port);
  */
 int32_t motor_get_voltage(uint8_t port);
 
-/******************************************************************************/
-/**                      Motor configuration functions                       **/
-/**                                                                          **/
-/**  These functions allow programmers to configure the behavior of motors   **/
-/******************************************************************************/
+///@}
 
-#ifdef __cplusplus
-}  // namespace c
-#endif
-
-/**
- * Indicates the current 'brake mode' of a motor.
- */
-typedef enum motor_brake_mode_e {
-	E_MOTOR_BRAKE_COAST = 0,  // Motor coasts when stopped, traditional behavior
-	E_MOTOR_BRAKE_BRAKE = 1,  // Motor brakes when stopped
-	E_MOTOR_BRAKE_HOLD = 2,   // Motor actively holds position when stopped
-	E_MOTOR_BRAKE_INVALID = INT32_MAX
-} motor_brake_mode_e_t;
-
-/**
- * Indicates the units used by the motor encoders.
- */
-typedef enum motor_encoder_units_e {
-	E_MOTOR_ENCODER_DEGREES = 0,    // Position is recorded as angle in degrees
-	                                // as a floating point number
-	E_MOTOR_ENCODER_ROTATIONS = 1,  // Position is recorded as angle in rotations
-	                                // as a floating point number
-	E_MOTOR_ENCODER_COUNTS = 2,     // Position is recorded as raw encoder ticks
-	                                // as a whole number
-	E_MOTOR_ENCODER_INVALID = INT32_MAX
-} motor_encoder_units_e_t;
-
-/**
- * Indicates the current internal gear ratio of a motor.
- */
-typedef enum motor_gearset_e {
-	E_MOTOR_GEARSET_36 = 0,  // 36:1, 100 RPM, Red gear set
-	E_MOTOR_GEARSET_18 = 1,  // 18:1, 200 RPM, Green gear set
-	E_MOTOR_GEARSET_06 = 2,  // 6:1, 600 RPM, Blue gear set
-	E_MOTOR_GEARSET_INVALID = INT32_MAX
-} motor_gearset_e_t;
-
-#ifdef PROS_USE_SIMPLE_NAMES
-#ifdef __cplusplus
-#define MOTOR_BRAKE_COAST pros::E_MOTOR_BRAKE_COAST
-#define MOTOR_BRAKE_BRAKE pros::E_MOTOR_BRAKE_BRAKE
-#define MOTOR_BRAKE_HOLD pros::E_MOTOR_BRAKE_HOLD
-#define MOTOR_BRAKE_INVALID pros::E_MOTOR_BRAKE_INVALID
-#define MOTOR_ENCODER_DEGREES pros::E_MOTOR_ENCODER_DEGREES
-#define MOTOR_ENCODER_ROTATIONS pros::E_MOTOR_ENCODER_ROTATIONS
-#define MOTOR_ENCODER_COUNTS pros::E_MOTOR_ENCODER_COUNTS
-#define MOTOR_ENCODER_INVALID pros::E_MOTOR_ENCODER_INVALID
-#define MOTOR_GEARSET_36 pros::E_MOTOR_GEARSET_36
-#define MOTOR_GEARSET_18 pros::E_MOTOR_GEARSET_18
-#define MOTOR_GEARSET_06 pros::E_MOTOR_GEARSET_06
-#define MOTOR_GEARSET_6 pros::E_MOTOR_GEARSET_06
-#define MOTOR_GEARSET_INVALID pros::E_MOTOR_GEARSET_INVALID
-#else
-#define MOTOR_BRAKE_COAST E_MOTOR_BRAKE_COAST
-#define MOTOR_BRAKE_BRAKE E_MOTOR_BRAKE_BRAKE
-#define MOTOR_BRAKE_HOLD E_MOTOR_BRAKE_HOLD
-#define MOTOR_BRAKE_INVALID E_MOTOR_BRAKE_INVALID
-#define MOTOR_ENCODER_DEGREES E_MOTOR_ENCODER_DEGREES
-#define MOTOR_ENCODER_ROTATIONS E_MOTOR_ENCODER_ROTATIONS
-#define MOTOR_ENCODER_COUNTS E_MOTOR_ENCODER_COUNTS
-#define MOTOR_ENCODER_INVALID E_MOTOR_ENCODER_INVALID
-#define MOTOR_GEARSET_36 E_MOTOR_GEARSET_36
-#define MOTOR_GEARSET_18 E_MOTOR_GEARSET_18
-#define MOTOR_GEARSET_06 E_MOTOR_GEARSET_06
-#define MOTOR_GEARSET_6 E_MOTOR_GEARSET_06
-#define MOTOR_GEARSET_INVALID E_MOTOR_GEARSET_INVALID
-#endif
-#endif
-
-/**
- * Holds the information about a Motor's position or velocity PID controls.
- *
- * These values are in 4.4 format, meaning that a value of 0x20 represents 2.0,
- * 0x21 represents 2.0625, 0x22 represents 2.125, etc.
- */
-typedef struct motor_pid_full_s {
-	uint8_t kf;         // The feedforward constant
-	uint8_t kp;         // The proportional constant
-	uint8_t ki;         // The integral constants
-	uint8_t kd;         // The derivative constant
-	uint8_t filter;     // A constant used for filtering the profile acceleration
-	uint16_t limit;     // The integral limit
-	uint8_t threshold;  // The threshold for determining if a position movement has
-	                    // reached its goal. This has no effect for velocity PID
-	                    // calculations.
-	uint8_t loopspeed;  // The rate at which the PID computation is run in ms
-} motor_pid_full_s_t;
-
-/**
- * Holds just the constants for a Motor's position or velocity PID controls.
- *
- * These values are in 4.4 format, meaning that a value of 0x20 represents 2.0,
- * 0x21 represents 2.0625, 0x22 represents 2.125, etc.
- */
-typedef struct motor_pid_s {
-	uint8_t kf;  // The feedforward constant
-	uint8_t kp;  // The proportional constant
-	uint8_t ki;  // The integral constants
-	uint8_t kd;  // The derivative constant
-} motor_pid_s_t;
-
-#ifdef __cplusplus
-namespace c {
-#endif
+/// \name Motor configuration functions
+/// These functions allow programmers to configure the behavior of motors
+///@{
 
 /**
  * Sets the position for the motor in its encoder units.
@@ -1091,6 +1073,9 @@ int32_t motor_is_reversed(uint8_t port);
  * setting errno.
  */
 int32_t motor_get_voltage_limit(uint8_t port);
+
+///@}
+///@}
 
 #ifdef __cplusplus
 }  // namespace c

@@ -1,5 +1,6 @@
 /**
  * \file pros/motors.hpp
+ * \ingroup cpp-motors
  *
  * Contains prototypes for the V5 Motor-related functions.
  *
@@ -14,6 +15,9 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * \defgroup cpp-motors Motors C++ API
+ * \note Additional example code for this module can be found in its [Tutorial](@ref motors).
  */
 
 #ifndef _PROS_MOTORS_HPP_
@@ -24,7 +28,15 @@
 #include "pros/motors.h"
 
 namespace pros {
+
+/**
+ * \ingroup cpp-motors
+ */
 class Motor {
+	/**
+	 * \addtogroup cpp-motors
+	 *  @{
+	 */
 	public:
 	/**
 	 * Creates a Motor object for the given port and specifications.
@@ -912,6 +924,7 @@ class Motor {
 
 	///@}
 
+	///@}
 	private:
 	const std::uint8_t _port;
 };
